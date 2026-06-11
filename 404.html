@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page Not Found – Secret Class</title>
+  <meta name="description" content="This page doesn't exist. Return to the Secret Class reader." />
+  <link rel="icon" href="data:," />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <style>
+    .error-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .error-content {
+      text-align: center;
+      max-width: 600px;
+    }
+    .error-code {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      line-height: 1;
+      margin: 0;
+    }
+    .error-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      margin: 1rem 0;
+      font-weight: 700;
+    }
+    .error-text {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    .error-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0.75rem 1.5rem;
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+    .btn-primary:hover {
+      background: var(--accent2);
+      border-color: var(--accent2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(200, 169, 110, 0.2);
+    }
+    .btn-ghost {
+      color: var(--muted);
+      border-color: var(--border2);
+    }
+    .btn-ghost:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="/" class="nav-brand">Secret Class</a>
+  <ul class="nav-links">
+    <li><a href="/#chapters">Chapters</a></li>
+    <li><a href="/#about">About</a></li>
+  </ul>
+</nav>
+
+<!-- ERROR CONTENT -->
+<div class="error-container">
+  <div class="error-content">
+    <h1 class="error-code">404</h1>
+    <h2 class="error-title">Page Not Found</h2>
+    <p class="error-text">
+      This page doesn't exist or has been moved. The chapter you're looking for might not be available yet, or the URL may have changed.
+    </p>
+    <div class="error-actions">
+      <a href="/" class="btn btn-primary">← Back Home</a>
+      <a href="/#chapters" class="btn btn-ghost">Browse Chapters →</a>
+    </div>
+  </div>
+</div>
+
+<footer style="margin-top: 4rem;">
+  <span>© <span id="year"></span> Secret Class Fan Reader. All rights to the original content belong to Wang Kang-cheol &amp; Minachan.</span>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

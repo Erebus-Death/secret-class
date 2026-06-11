@@ -1,0 +1,8 @@
+# Cloudflare Pages redirects
+# Format: <from>  <to>  <status>
+#
+# Pretty-URL rewrite for chapter pages:
+#   /chapter/001/  →  /reader.html?chapter=001
+
+/chapter/:num/   /reader.html?chapter=:num   200
+/chapter/:num    /reader.html?chapter=:num   200

@@ -1,0 +1,17 @@
+# Image cache (2GB of hardlinked files – never commit)
+chapters/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local server logs / temp
+*.log
+.DS_Store
+
+# Build artifacts (optional: but keep chapters.json and sitemap, they are small)
+# We commit them because they are needed for the site to work without rebuilding
+
+# Your local config (if any)
+.env
+.local

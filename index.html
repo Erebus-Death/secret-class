@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Secret Class – Read Manhwa Online Free</title>
+<meta name="description" content="Read Secret Class manhwa online for free in English. All chapters available with fastest updates." />
+<meta property="og:title" content="Secret Class – Read Manhwa Online Free" />
+<meta property="og:description" content="Read Secret Class manhwa online for free. Fast updates, all chapters." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="/" />
+<link rel="canonical" href="/" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Secret Class – Read Manhwa Online Free" />
+<meta name="twitter:description" content="Read Secret Class manhwa online for free. Fast updates, all chapters." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Serif+KR:wght@400;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/styles.css" />
+
+<!-- Series-level structured data — reader.js enhances with chapter list at runtime -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type":    "ComicSeries",
+  "name":     "Secret Class",
+  "author":   "Wang Kang-cheol",
+  "artist":   "Minachan",
+  "genre":    ["Romance", "Drama", "Mature", "School Life", "Slice of Life"],
+  "status":   "Ongoing"
+}
+</script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="/" class="nav-brand">Secret Class</a>
+  <ul class="nav-links">
+    <li><a href="#chapters">Chapters</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<header class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-inner">
+
+    <div class="hero-cover">
+  <img src="assets/cover.webp" alt="Secret Class cover art" class="hero-cover-img">
+</div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <div class="dot"></div>
+        Ongoing Series
+      </div>
+
+      <h1 class="hero-title">SECRET<br/><span>CLASS</span></h1>
+      <p class="hero-subtitle">시크릿 클래스 · Sijeurit Keullaseu</p>
+
+      <div class="hero-meta">
+        <div class="meta-item">
+          <span class="meta-label">Author</span>
+          <span class="meta-value">Wang Kang-cheol</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Artist</span>
+          <span class="meta-value">Minachan</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Chapters</span>
+          <span class="meta-value" id="chapters-count">…</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Status</span>
+          <span class="meta-value status-ongoing">
+            <div class="status-dot"></div> Ongoing
+          </span>
+        </div>
+        <div class="meta-item" id="last-update-wrap" style="display:none;">
+          <span class="meta-label">Last Read</span>
+          <span class="meta-value" id="last-read">
+            <a href="#" id="last-read-link">—</a>
+          </span>
+        </div>
+      </div>
+
+      <p class="hero-desc">
+        After losing both parents at a young age, Daeho is taken in by his uncle's family.
+        Growing up sheltered from the realities of adult life, he begins receiving an unusual
+        education from the women around him — lessons that change everything.
+      </p>
+
+      <div class="hero-actions">
+        <a href="/reader.html?chapter=001" class="btn btn-primary" id="btn-chapter-1">
+          ▶ Read Chapter 1
+        </a>
+        <a href="#" class="btn btn-ghost" id="btn-latest">
+          Read Latest
+        </a>
+        <a href="#" class="btn btn-ghost" id="btn-continue" style="display:none;">
+          ↪ Continue Reading
+        </a>
+      </div>
+    </div>
+
+  </div>
+</header>
+
+<!-- CHAPTER LIST (server-rendered, indexed by Google) -->
+<main>
+  <section class="section" id="chapters">
+    <div class="section-header">
+      <h2 class="section-title">All <span>Chapters</span></h2>
+      <div class="chapter-search">
+        <input
+          class="search-input"
+          type="search"
+          placeholder="Search chapter…"
+          id="search-box"
+          autocomplete="off"
+          aria-label="Filter chapter list"
+        />
+      </div>
+    </div>
+
+    <div class="chapter-grid" id="chapter-grid">
+      <!-- JS appends <a class="chapter-item"> tags here. We also render a
+           static fallback below for crawlers + JS-off visitors. -->
+      <noscript>
+        <p style="color:var(--muted);">
+          This site needs JavaScript to render the chapter list.
+          Please enable JavaScript, or <a href="chapters.json" style="color:var(--accent);">view the chapter manifest directly</a>.
+        </p>
+      </noscript>
+    </div>
+  </section>
+
+  <section class="section" id="about" style="border-top: 1px solid var(--border);">
+    <div style="max-width:640px;">
+      <h2 class="section-title" style="margin-bottom:1rem;">About the <span>Manhwa</span></h2>
+      <p style="color:var(--muted); line-height:1.9; font-size:0.9rem;">
+        <em>Secret Class</em> is a South Korean manhwa (웹툰) that has garnered a large following
+        for its blend of drama, romance, and mature themes. Written by Wang Kang-cheol and
+        illustrated by Minachan, the series explores the coming-of-age story of Daeho as he
+        navigates complex relationships within the household that raised him.
+      </p>
+      <p style="color:var(--muted); line-height:1.9; font-size:0.9rem; margin-top:1rem;">
+        Use the chapter list above to read from the beginning, or jump straight to the latest release.
+      </p>
+    </div>
+  </section>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2026 Secret Class Fan Reader. All rights to the original content belong to Wang Kang-cheol &amp; Minachan.</span>
+  <span><a href="#">Back to top ↑</a></span>
+</footer>
+
+<!-- Landing-page enhancements: fetch chapters.json, render list, wire CTAs -->
+<script src="assets/landing.js"></script>
+</body>
+</html>
