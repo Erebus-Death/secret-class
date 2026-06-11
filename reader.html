@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Loading… – Secret Class</title>
-<meta name="description" content="Read Secret Class manhwa online for free in English. All chapters available with the fastest updates." />
+<meta name="description" content="Read Secret Class manhwa online for free in English." />
 <link rel="icon" href="data:," />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,7 +13,7 @@
 </head>
 <body>
 
-<!-- NAV (placeholder; reader.js fills in the brand and adjusts links) -->
+<!-- STICKY NAV -->
 <nav class="nav" id="nav">
   <a href="../" class="nav-brand" id="nav-brand">Secret Class</a>
   <ul class="nav-links" id="nav-links">
@@ -22,40 +22,75 @@
   </ul>
 </nav>
 
-<!-- CHAPTER HEADER (filled in by reader.js) -->
-<div class="reader-chapter-header" id="chapter-header">
-  <nav class="breadcrumbs" aria-label="Breadcrumb" id="breadcrumbs">
-    <a href="../">Home</a><span class="sep">›</span>
-    <a href="../#chapters" id="bc-series">Secret Class</a><span class="sep">›</span>
-    <span id="bc-chapter">Chapter</span>
-  </nav>
-  <h1 id="chapter-title">Loading chapter…</h1>
-  <div class="sub" id="chapter-sub">—</div>
+<!-- READER HEADER -->
+<div class="pv-reader-wrap">
+
+  <!-- H1 title (centered, above card) -->
+  <h1 class="pv-title" id="pv-title">Loading…</h1>
+
+  <!-- Info card: breadcrumbs + description + tags -->
+  <div class="pv-info-card" id="pv-info-card">
+    <nav class="pv-breadcrumbs" aria-label="Breadcrumb">
+      <a href="../" id="pv-bc-home">Home</a>
+      <span class="pv-sep">›</span>
+      <a href="../" id="pv-bc-series">Secret Class</a>
+      <span class="pv-sep">›</span>
+      <span id="pv-bc-chapter">Chapter</span>
+    </nav>
+    <p class="pv-description" id="pv-description">Loading…</p>
+    <div class="pv-tags" id="pv-tags"></div>
+  </div>
+
+  <!-- Chapter selector row: Prev | dropdown | Next -->
+  <div class="pv-controls" id="pv-controls-top">
+    <a href="#" id="pv-prev-top" class="pv-pill pv-prev">‹ Prev</a>
+
+    <!-- Dropdown trigger -->
+    <div class="pv-dropdown-wrap" id="pv-dropdown-wrap-top">
+      <button class="pv-dropdown-btn" id="pv-dropdown-btn-top" aria-haspopup="listbox" aria-expanded="false">
+        <span id="pv-dropdown-label-top">Chapter —</span>
+        <svg class="pv-chevron" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1 1L6 7L11 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="pv-dropdown-panel" id="pv-dropdown-panel-top" role="listbox" aria-label="Select chapter" hidden>
+        <ul class="pv-chapter-list" id="pv-chapter-list-top"></ul>
+      </div>
+    </div>
+
+    <a href="#" id="pv-next-top" class="pv-pill pv-next">Next ›</a>
+  </div>
+
 </div>
 
-<!-- PREV/NEXT NAV TOP -->
-<nav class="chapter-nav" id="chapter-nav-top" aria-label="Chapter navigation">
-  <span class="disabled" id="nav-prev-top">← Prev</span>
-  <select class="chapter-dropdown" id="chapter-dropdown-top" aria-label="Select chapter"></select>
-  <span class="disabled" id="nav-next-top">Next →</span>
-</nav>
-
-<!-- PAGES (rendered into this container by reader.js) -->
+<!-- READER PAGES -->
 <div class="reader-page" id="reader-pages">
-  <p style="color:var(--muted);">Loading…</p>
+  <p style="color:var(--muted); padding:4rem; text-align:center;">Loading…</p>
 </div>
 
-<!-- SEO TEXT BLOCK (filled in by reader.js) -->
+<!-- BOTTOM CONTROLS -->
+<div class="pv-controls pv-controls-bottom" id="pv-controls-bottom">
+  <a href="#" id="pv-prev-bot" class="pv-pill pv-prev">‹ Prev</a>
+
+  <div class="pv-dropdown-wrap" id="pv-dropdown-wrap-bot">
+    <button class="pv-dropdown-btn" id="pv-dropdown-btn-bot" aria-haspopup="listbox" aria-expanded="false">
+      <span id="pv-dropdown-label-bot">Chapter —</span>
+      <svg class="pv-chevron" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 1L6 7L11 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="pv-dropdown-panel" id="pv-dropdown-panel-bot" role="listbox" aria-label="Select chapter" hidden>
+      <ul class="pv-chapter-list" id="pv-chapter-list-bot"></ul>
+    </div>
+  </div>
+
+  <a href="#" id="pv-next-bot" class="pv-pill pv-next">Next ›</a>
+</div>
+
+<!-- SEO TEXT BLOCK -->
 <div class="chapter-seo" id="chapter-seo"></div>
 
-<!-- PREV/NEXT NAV BOTTOM -->
-<nav class="chapter-nav" id="chapter-nav-bottom" aria-label="Chapter navigation">
-  <span class="disabled" id="nav-prev-bot">← Prev</span>
-  <select class="chapter-dropdown" id="chapter-dropdown-bottom" aria-label="Select chapter"></select>
-  <span class="disabled" id="nav-next-bot">Next →</span>
-</nav>
-
-<!-- LATEST CHAPTERS WIDGET (filled in by reader.js) -->
+<!-- LATEST CHAPTERS WIDGET -->
 <div class="latest-widget" id="latest-widget">
   <h2>Latest <span>Chapters</span></h2>
   <ul id="latest-list"></ul>
@@ -66,12 +101,8 @@
   <span><a href="../">Back to home ↑</a></span>
 </footer>
 
-<!-- Structured data: populated by reader.js once we know the chapter -->
 <script type="application/ld+json" id="jsonld"></script>
-
-<script>
-document.getElementById('year').textContent = new Date().getFullYear();
-</script>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 <script src="assets/reader.js"></script>
 </body>
 </html>

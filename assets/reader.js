@@ -1,281 +1,240 @@
 /* =================================================================
-   Secret Class — reader.js (v2 with Phase 2 features)
-   
-   Single client script that powers BOTH the landing page and the
-   dynamic reader page.
+   Secret Class — reader.js  (PanelVerse-accurate layout)
+   ================================================================= */
 
-   Landing page (index.html):
-     - Progressive search filter on the chapter list
-     - "Continue reading" pill if you've saved progress
-
-   Reader page (reader.html):
-     - Reads ?chapter=001 (or path-based /chapter/001/) from the URL
-     - Fetches chapters.json
-     - Renders the chapter: pages, header, prev/next, breadcrumbs,
-       SEO text block, latest-chapters widget
-     - Sets all per-page meta tags + JSON-LD
-     - Keyboard nav: ← → for chapters, j k Space Shift+Space for scroll, R for reading mode
-     - Progress bar: current page + scroll indicator
-     - Reading mode: hide nav/footer, maximize images
-     - Image lightbox: click to zoom, click/Esc to close
-     - Saves reading progress + scroll position to localStorage
-================================================================= */
-
-// ─── Global Helpers (must be outside IIFE for access by other functions) ───
 const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => document.querySelectorAll(sel);
 
 function getChapterFromURL() {
-  // 1. ?chapter=001 (query param)
   const params = new URLSearchParams(window.location.search);
   const q = params.get('chapter');
   if (q) return q;
-
-  // 2. /chapter/001/ (path-based, only works under the local serve.py
-  //    or Cloudflare _redirects — direct file:// won't have this)
   const m = window.location.pathname.match(/\/chapter\/(\d+(?:\.\d+)?)\/?$/);
-  if (m) return m[1];
-
-  return null;
+  return m ? m[1] : null;
 }
 
-function pad2(n) { return String(n).padStart(3, '0'); }
-
-// Store/restore reading progress (GLOBAL so other functions can access it)
-function saveProgress(chapter) {
-  try {
-    localStorage.setItem('sc:lastChapter', chapter.num);
-    localStorage.setItem('sc:lastVisit', new Date().toISOString());
-    localStorage.setItem(`sc:scroll:${chapter.num}`, window.scrollY);
-  } catch (e) { /* private mode / quota — ignore */ }
-}
-
-function getSavedScroll(chapterNum) {
-  try {
-    const saved = localStorage.getItem(`sc:scroll:${chapterNum}`);
-    return saved ? parseInt(saved, 10) : 0;
-  } catch (e) {
-    return 0;
-  }
+function getSavedScroll(num) {
+  try { return parseInt(localStorage.getItem(`sc:scroll:${num}`), 10) || 0; }
+  catch (e) { return 0; }
 }
 
 (async function () {
-  'use strict';
-
-  // ─── Fetch manifest ───────────────────────────────────────
   let manifest;
   try {
-    console.log('[reader.js] Fetching chapters.json...');
     const res = await fetch('chapters.json', { cache: 'no-cache' });
-    console.log('[reader.js] Fetch response status:', res.status);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     manifest = await res.json();
-    console.log('[reader.js] Manifest loaded, chapters:', manifest.chapters.length);
   } catch (err) {
-    console.error('[reader.js] Error loading chapters.json:', err);
-    document.body.innerHTML =
-      `<div style="padding:4rem;text-align:center;color:#888;">
-         <h1 style="font-family:'Bebas Neue',sans-serif;color:#c8a96e;letter-spacing:.05em;">
-           Couldn't load chapters.json
-         </h1>
-         <p>This site must be served via a local web server (not opened as a file://).</p>
-         <p style="margin-top:1rem;">From the site folder, run: <code>python3 serve.py</code></p>
-         <p style="color:#666;font-size:.85rem;margin-top:1rem;">${err.message}</p>
-       </div>`;
+    document.body.innerHTML = `<div style="padding:4rem;text-align:center;color:#888;">Failed to load chapters.json</div>`;
     return;
   }
 
   const { series, chapters } = manifest;
-  const byNum = new Map(chapters.map((c) => [c.num, c]));
+  const byNum = new Map(chapters.map(c => [c.num, c]));
 
-  // ─── Landing-page behaviour ───────────────────────────────
-  const searchBox = $('#search-box');
-  if (searchBox) {
-    searchBox.addEventListener('input', () => {
-      const q = searchBox.value.toLowerCase().trim();
-      $$('.chapter-item').forEach((item) => {
-        const text = item.textContent.toLowerCase();
-        item.style.display = (!q || text.includes(q)) ? '' : 'none';
-      });
-    });
-  }
-
-  // ─── Reader-page behaviour ────────────────────────────────
-  const readerPagesEl = $('#reader-pages');
-  if (!readerPagesEl) return; // not a reader page
+  const readerEl = $('#reader-pages');
+  if (!readerEl) return;
 
   const numStr = getChapterFromURL();
-  console.log('[reader.js] Chapter from URL:', numStr);
   if (!numStr) {
-    console.warn('[reader.js] No chapter specified in URL');
-    readerPagesEl.innerHTML =
-      `<p style="color:#888;">No chapter specified. ` +
-      `<a href="../" style="color:#c8a96e;">Go to the chapter list →</a></p>`;
+    readerEl.innerHTML = `<p style="padding:4rem;text-align:center;">No chapter specified. <a href="../">Go home</a></p>`;
     return;
   }
 
   const chapter = byNum.get(numStr);
-  console.log('[reader.js] Looking up chapter:', numStr, 'found:', !!chapter);
   if (!chapter) {
-    console.warn('[reader.js] Chapter not found:', numStr);
-    readerPagesEl.innerHTML =
-      `<p style="color:#888;">Chapter ${numStr} not found. ` +
-      `<a href="../" style="color:#c8a96e;">Browse all chapters →</a></p>`;
+    readerEl.innerHTML = `<p style="padding:4rem;text-align:center;">Chapter ${numStr} not found. <a href="../">Browse chapters</a></p>`;
     return;
   }
 
-  console.log('[reader.js] Rendering chapter:', numStr, 'with', chapter.pages, 'pages');
+  try {
+    localStorage.setItem('sc:lastChapter', chapter.num);
+    localStorage.setItem('sc:lastVisit', Date.now());
+  } catch (e) {}
+
   renderChapter(chapter, chapters, series);
+  setupDropdowns(chapter, chapters);
   setupKeyboardNav(chapter, chapters);
-  setupProgressBar(chapter);
+  setupProgressBar();
   setupReadingMode();
   setupScrollTracking(chapter);
-  attachPageNav(); // j/k Space Shift+Space scroll
-  
-  // Restore scroll position on page load
+  attachPageNav();
+
   window.addEventListener('load', () => {
     const saved = getSavedScroll(chapter.num);
-    if (saved > 0) {
-      requestAnimationFrame(() => window.scrollTo(0, saved));
-    }
+    if (saved > 0) requestAnimationFrame(() => window.scrollTo(0, saved));
   });
 })();
 
-
-// ─────────────────────────────────────────────────────────────
-// Render a chapter into the reader page
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
 function renderChapter(chapter, allChapters, series) {
-  // 1. Per-page meta tags
-  const title = `Read ${series.title} Chapter ${chapter.num} – Read Manhwa Online`;
-  const desc  = `Read ${series.title} Chapter ${chapter.num} online in high quality. ` +
-                `${chapter.pages} pages, fast loading, no sign-up. ` +
-                `By ${series.author}, illustrated by ${series.artist}.`;
+  const idx = allChapters.findIndex(c => c.num === chapter.num);
+  const older = idx > 0 ? allChapters[idx - 1] : null;
+  const newer = idx < allChapters.length - 1 ? allChapters[idx + 1] : null;
+  const dn = displayNum(chapter.num);
+
+  // Meta
+  const title = `${series.title} Chapter ${dn} – Secret Class Reader`;
+  const desc = `Read ${series.title} Chapter ${dn} online free. ${chapter.pages} pages. By ${series.author}, art by ${series.artist}.`;
   document.title = title;
   setMeta('description', desc);
   setMeta('og:title', title, 'property');
   setMeta('og:description', desc, 'property');
-  setMeta('og:type', 'website', 'property');
-  setMeta('og:url', window.location.href, 'property');
-  setMeta('twitter:card', 'summary_large_image', 'name');
-  setMeta('twitter:title', title, 'name');
-  setMeta('twitter:description', desc, 'name');
-  if (chapter.images && chapter.images[0]) {
-    setMeta('og:image', chapter.images[0], 'property');
-    setMeta('twitter:image', chapter.images[0], 'name');
+  if (chapter.images?.[0]) setMeta('og:image', chapter.images[0], 'property');
+  setLinkRel('canonical', `/reader.html?chapter=${chapter.num}`);
+
+  // JSON-LD
+  $('#jsonld').textContent = JSON.stringify({
+    "@context": "https://schema.org", "@type": "ComicIssue",
+    "issueNumber": chapter.num,
+    "name": `${series.title} Chapter ${chapter.num}`,
+    "isPartOf": { "@type": "ComicSeries", "name": series.title, "url": "/" },
+    "image": chapter.images?.slice(0, 3),
+    "author": series.author, "artist": series.artist
+  });
+
+  // H1
+  $('#pv-title').textContent = `${series.title} Chapter ${dn}`;
+
+  // Breadcrumbs
+  $('#pv-bc-series').textContent = series.title;
+  $('#pv-bc-chapter').textContent = `Chapter ${dn}`;
+
+  // Description
+  $('#pv-description').innerHTML =
+    `${escapeHtml(series.synopsis || '')} — <strong>Chapter ${dn}</strong>, ${chapter.pages} pages.`;
+
+  // Tags
+  $('#pv-tags').innerHTML =
+    `<span class="pv-tag pv-tag-status">${series.status}</span>` +
+    series.genres.map(g => `<span class="pv-tag">${escapeHtml(g)}</span>`).join('');
+
+  // Author credit — separate element inside the card, below tags
+  let authorEl = document.getElementById('pv-author');
+  if (!authorEl) {
+    authorEl = document.createElement('p');
+    authorEl.id = 'pv-author';
+    authorEl.className = 'pv-author-line';
+    $('#pv-info-card')?.appendChild(authorEl);
   }
-  // Canonical: use query string format for universal compatibility
-  const canonicalURL = `/reader.html?chapter=${chapter.num}`;
-  setLinkRel('canonical', canonicalURL);
+  authorEl.textContent = `✎ ${series.author} / ${series.artist}`;
 
-  // 2. JSON-LD
-  const ld = {
-    "@context":      "https://schema.org",
-    "@type":         "ComicIssue",
-    "issueNumber":   chapter.num,
-    "name":          `${series.title} Chapter ${chapter.num}`,
-    "isPartOf": {
-      "@type": "ComicSeries",
-      "name":  series.title,
-      "url":   "/"
-    },
-    "datePublished": new Date().toISOString().slice(0, 10),
-    "image":         (chapter.images || []).slice(0, 3),
-    "url":           canonicalURL,
-    "author":        series.author,
-    "artist":        series.artist,
-  };
-  document.getElementById('jsonld').textContent = JSON.stringify(ld, null, 2);
+  // Prev/Next buttons
+  setNavPill('pv-prev-top', older);
+  setNavPill('pv-prev-bot', older);
+  setNavPill('pv-next-top', newer);
+  setNavPill('pv-next-bot', newer);
 
-  // 3. Header
-  document.getElementById('chapter-title').textContent =
-    `${series.title} Chapter ${chapter.num}`;
-  document.getElementById('chapter-sub').textContent =
-    `${chapter.pages} pages · ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })} release`;
-  document.getElementById('nav-brand').textContent = series.title;
-  document.getElementById('bc-series').textContent = series.title;
-  document.getElementById('bc-chapter').textContent = `Chapter ${chapter.num}`;
+  // Dropdown labels
+  const label = `Chapter ${dn}`;
+  ['pv-dropdown-label-top', 'pv-dropdown-label-bot'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = label;
+  });
 
-  // 4. Render pages
-  const pagesEl = document.getElementById('reader-pages');
-  pagesEl.innerHTML = chapter.images.map((src, i) =>
-    `<img src="${src}" alt="${series.title} Chapter ${chapter.num} – Page ${i + 1}" ` +
-    `loading="lazy" decoding="async" />`
+  // Chapter list html (newest first)
+  const listHtml = allChapters.slice().reverse().map(c => {
+    const isCurrent = c.num === chapter.num;
+    const cdn = displayNum(c.num);
+    return `<li class="${isCurrent ? 'pv-current' : ''}">` +
+      (isCurrent
+        ? `<span>Chapter ${cdn}</span>`
+        : `<a href="/reader.html?chapter=${c.num}">Chapter ${cdn}</a>`) +
+      `</li>`;
+  }).join('');
+  ['pv-chapter-list-top', 'pv-chapter-list-bot'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = listHtml;
+  });
+
+  // Reader images
+  $('#reader-pages').innerHTML = chapter.images.map((src, i) =>
+    `<img src="${src}" alt="${escapeHtml(series.title)} Chapter ${dn} Page ${i + 1}" loading="lazy" />`
   ).join('');
 
-  // 5. Prev/Next nav (top + bottom) + dropdown
-  const idx = allChapters.findIndex((c) => c.num === chapter.num);
-  const older = idx > 0 ? allChapters[idx - 1] : null;     // ← Previous
-  const newer = idx < allChapters.length - 1 ? allChapters[idx + 1] : null; // Next →
-
-  setNavLinkSimple('nav-prev-top', older, '← Prev');
-  setNavLinkSimple('nav-prev-bot', older, '← Prev');
-  setNavLinkSimple('nav-next-top', newer, 'Next →');
-  setNavLinkSimple('nav-next-bot', newer, 'Next →');
-
-  // Populate dropdowns
-  populateDropdown('chapter-dropdown-top', allChapters, chapter.num);
-  populateDropdown('chapter-dropdown-bottom', allChapters, chapter.num);
-
-  // 6. SEO text block
-  const seo = document.getElementById('chapter-seo');
-  seo.innerHTML = `
-    <h2>Read ${escapeHtml(series.title)} Chapter ${escapeHtml(chapter.num)}</h2>
-    <p>Continue reading <em>${escapeHtml(series.title)}</em> with Chapter ${escapeHtml(chapter.num)} — ${chapter.pages} pages of high-quality scans.
-       The story follows Daeho as he navigates the complex dynamics of the household that raised him, with new tensions and revelations in every release.</p>
-    <p>Looking for another chapter? Browse the <a href="../#chapters">full chapter list</a> or jump to the
-       <a href="/reader.html?chapter=${allChapters[allChapters.length - 1].num}/">latest release</a>.
-       All chapters are presented for fan reading purposes; all rights belong to
-       ${escapeHtml(series.author)} and ${escapeHtml(series.artist)}.</p>
-    <p style="margin-top:1rem; font-size:0.8rem; color:var(--faint);">
-       Tags: ${series.genres.map(escapeHtml).join(', ')}
-    </p>
+  // SEO block
+  $('#chapter-seo').innerHTML = `
+    <h2>Read ${escapeHtml(series.title)} Chapter ${dn}</h2>
+    <p>All chapters are presented for fan reading purposes; all rights belong to ${escapeHtml(series.author)} and ${escapeHtml(series.artist)}.</p>
+    <p>Tags: ${series.genres.map(escapeHtml).join(', ')}</p>
   `;
 
-  // 7. Latest chapters widget (skip current, show newest first, limit 12)
-  const latest = allChapters
-    .filter((c) => c.num !== chapter.num)
-    .slice(-12)
-    .reverse();
-  document.getElementById('latest-list').innerHTML = latest
-    .map((c) => `<li><a href="/reader.html?chapter=${c.num}">Ch.${c.num}</a></li>`)
-    .join('');
+  // Latest widget
+  const latest = allChapters.filter(c => c.num !== chapter.num).slice(-12).reverse();
+  $('#latest-list').innerHTML = latest.map(c =>
+    `<li><a href="/reader.html?chapter=${c.num}">Ch.${displayNum(c.num)}</a></li>`
+  ).join('');
 }
 
-function setNavLinkSimple(id, target, label = '') {
+// ─────────────────────────────────────────────────────────────────
+function setNavPill(id, target) {
   const el = document.getElementById(id);
   if (!el) return;
+  const isPrev = id.includes('prev');
+  el.textContent = isPrev ? '‹ Prev' : 'Next ›';
   if (!target) {
-    el.outerHTML = `<span class="disabled" id="${id}">${label}</span>`;
-    return;
+    el.removeAttribute('href');
+    el.classList.add('pv-pill-disabled');
+  } else {
+    el.href = `/reader.html?chapter=${target.num}`;
+    el.classList.remove('pv-pill-disabled');
   }
-  el.outerHTML = `<a href="/reader.html?chapter=${target.num}" id="${id}">${label}</a>`;
 }
 
-function populateDropdown(id, allChapters, currentNum) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.innerHTML = allChapters
-    .map((c) => `<option value="${c.num}" ${c.num === currentNum ? 'selected' : ''}>
-      Ch. ${c.num}
-    </option>`)
-    .join('');
-  el.addEventListener('change', () => {
-    window.location.href = `/reader.html?chapter=${el.value}`;
+// ─── Dropdown open/close ──────────────────────────────────────────
+function setupDropdowns(chapter, allChapters) {
+  [
+    ['pv-dropdown-btn-top', 'pv-dropdown-panel-top', 'pv-chapter-list-top'],
+    ['pv-dropdown-btn-bot', 'pv-dropdown-panel-bot', 'pv-chapter-list-bot'],
+  ].forEach(([btnId, panelId, listId]) => {
+    const btn = document.getElementById(btnId);
+    const panel = document.getElementById(panelId);
+    if (!btn || !panel) return;
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = !panel.hidden;
+      closeAllDropdowns();
+      if (!isOpen) {
+        panel.hidden = false;
+        btn.setAttribute('aria-expanded', 'true');
+        // Scroll current chapter into view
+        const list = document.getElementById(listId);
+        const current = list?.querySelector('.pv-current');
+        if (current) requestAnimationFrame(() => current.scrollIntoView({ block: 'center' }));
+      }
+    });
+  });
+
+  // Click outside closes
+  document.addEventListener('click', closeAllDropdowns);
+
+  // Navigate on list item click (already handled by <a> links,
+  // but close the panel on any click inside it)
+  ['pv-dropdown-panel-top', 'pv-dropdown-panel-bot'].forEach(id => {
+    const panel = document.getElementById(id);
+    panel?.addEventListener('click', (e) => {
+      // Let the <a> navigate; close the dropdown
+      setTimeout(closeAllDropdowns, 0);
+    });
   });
 }
 
+function closeAllDropdowns() {
+  ['pv-dropdown-panel-top', 'pv-dropdown-panel-bot'].forEach(id => {
+    const panel = document.getElementById(id);
+    if (panel) panel.hidden = true;
+  });
+  ['pv-dropdown-btn-top', 'pv-dropdown-btn-bot'].forEach(id => {
+    document.getElementById(id)?.setAttribute('aria-expanded', 'false');
+  });
+}
 
-// ─────────────────────────────────────────────────────────────
-// Keyboard nav: ← → for chapters, j k for page scroll
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
 function setupKeyboardNav(currentChapter, allChapters) {
-  const idx = allChapters.findIndex((c) => c.num === currentChapter.num);
-
+  const idx = allChapters.findIndex(c => c.num === currentChapter.num);
   document.addEventListener('keydown', (e) => {
-    // Ignore when user is typing in an input
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
+    if (e.key === 'Escape') { closeAllDropdowns(); return; }
     if (e.key === 'ArrowLeft' && idx > 0) {
       e.preventDefault();
       window.location.href = `/reader.html?chapter=${allChapters[idx - 1].num}`;
@@ -286,64 +245,45 @@ function setupKeyboardNav(currentChapter, allChapters) {
   });
 }
 
-
-// ─────────────────────────────────────────────────────────────
-// Progress bar: current page + scroll indicator
-// ─────────────────────────────────────────────────────────────
-function setupProgressBar(chapter) {
-  let progressBar = document.getElementById('progress-bar');
-  if (!progressBar) {
-    progressBar = document.createElement('div');
-    progressBar.id = 'progress-bar';
-    progressBar.className = 'reader-progress-bar';
-    document.body.insertBefore(progressBar, document.body.firstChild);
+function setupProgressBar() {
+  let bar = document.getElementById('progress-bar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'progress-bar';
+    bar.className = 'reader-progress-bar';
+    document.body.insertBefore(bar, document.body.firstChild);
   }
-
-  // Update on scroll
-  window.addEventListener('scroll', () => {
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const scrollPercent = docHeight > 0 ? (window.scrollY / docHeight) * 100 : 0;
-    progressBar.style.width = scrollPercent + '%';
-    
-    updateProgressText(chapter);
-  });
-
-  updateProgressText(chapter);
+  const updateBar = () => {
+    const docH = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (docH > 0 ? (window.scrollY / docH) * 100 : 0) + '%';
+    updateProgressText();
+  };
+  window.addEventListener('scroll', updateBar, { passive: true });
+  updateBar();
 }
 
-function updateProgressText(chapter) {
-  let progressText = document.getElementById('progress-text');
-  if (!progressText) {
-    progressText = document.createElement('div');
-    progressText.id = 'progress-text';
-    progressText.className = 'reader-progress-text';
-    const nav = document.querySelector('nav.nav');
-    if (nav) nav.appendChild(progressText);
+function updateProgressText() {
+  let text = document.getElementById('progress-text');
+  if (!text) {
+    text = document.createElement('div');
+    text.id = 'progress-text';
+    text.className = 'reader-progress-text';
+    document.querySelector('nav.nav')?.appendChild(text);
   }
-
   const images = document.querySelectorAll('#reader-pages img');
-  if (images.length === 0) return;
-
-  let currentPage = 1;
-  const viewportMid = window.innerHeight / 2;
-  
+  if (!images.length) return;
+  let current = 1;
+  const mid = window.innerHeight / 2;
   for (let i = 0; i < images.length; i++) {
-    const rect = images[i].getBoundingClientRect();
-    if (rect.top <= viewportMid && rect.bottom >= viewportMid) {
-      currentPage = i + 1;
-      break;
-    }
+    const r = images[i].getBoundingClientRect();
+    if (r.top <= mid && r.bottom >= mid) { current = i + 1; break; }
   }
-
-  progressText.textContent = `${currentPage} / ${images.length}`;
+  text.textContent = `${current} / ${images.length}`;
 }
 
-
-// ─────────────────────────────────────────────────────────────
-// Reading mode: hide nav + footer, maximize image area
-// ─────────────────────────────────────────────────────────────
 function setupReadingMode() {
   document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key?.toLowerCase() === 'r') {
       e.preventDefault();
       document.body.classList.toggle('reading-mode');
@@ -351,80 +291,39 @@ function setupReadingMode() {
   });
 }
 
-
-// ─────────────────────────────────────────────────────────────
-// Scroll tracking: save scroll position for chapter on unload
-// ─────────────────────────────────────────────────────────────
-let scrollSaved = false;
 function setupScrollTracking(chapter) {
-  window.addEventListener('scroll', () => {
-    if (scrollSaved) return;
-    try {
-      localStorage.setItem(`sc:scroll:${chapter.num}`, window.scrollY);
-    } catch (e) {}
-  });
-  
-  window.addEventListener('beforeunload', () => {
-    scrollSaved = true;
-    try {
-      localStorage.setItem(`sc:scroll:${chapter.num}`, window.scrollY);
-    } catch (e) {}
-  });
+  let t;
+  const save = () => { try { localStorage.setItem(`sc:scroll:${chapter.num}`, window.scrollY); } catch (e) {} };
+  window.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(save, 200); }, { passive: true });
+  window.addEventListener('beforeunload', save);
 }
 
-
-// ─────────────────────────────────────────────────────────────
-// Enhanced page navigation: j/k Space Shift+Space
-// ─────────────────────────────────────────────────────────────
 function attachPageNav() {
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    
-    if (e.key === 'j') {
-      window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' });
-    } else if (e.key === 'k') {
-      window.scrollBy({ top: -window.innerHeight * 0.85, behavior: 'smooth' });
-    } else if (e.key === ' ') {
-      // Space: scroll down one viewport
-      e.preventDefault();
-      window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' });
-    } else if (e.key === ' ' && e.shiftKey) {
-      // Shift+Space: scroll up one viewport
-      e.preventDefault();
-      window.scrollBy({ top: -window.innerHeight * 0.85, behavior: 'smooth' });
-    }
+    if (e.key === 'j') window.scrollBy({ top: window.innerHeight * 0.85, behavior: 'smooth' });
+    else if (e.key === 'k') window.scrollBy({ top: -window.innerHeight * 0.85, behavior: 'smooth' });
+    else if (e.key === ' ' && !e.shiftKey) { e.preventDefault(); window.scrollBy({ top: window.innerHeight, behavior: 'smooth' }); }
+    else if (e.key === ' ' && e.shiftKey) { e.preventDefault(); window.scrollBy({ top: -window.innerHeight, behavior: 'smooth' }); }
   });
 }
 
-
-// ─────────────────────────────────────────────────────────────
-// DOM helpers
-// ─────────────────────────────────────────────────────────────
 function setMeta(name, content, attr = 'name') {
   let el = document.head.querySelector(`meta[${attr}="${name}"]`);
-  if (!el) {
-    el = document.createElement('meta');
-    el.setAttribute(attr, name);
-    document.head.appendChild(el);
-  }
+  if (!el) { el = document.createElement('meta'); el.setAttribute(attr, name); document.head.appendChild(el); }
   el.setAttribute('content', content);
 }
-
 function setLinkRel(rel, href) {
   let el = document.head.querySelector(`link[rel="${rel}"]`);
-  if (!el) {
-    el = document.createElement('link');
-    el.setAttribute('rel', rel);
-    document.head.appendChild(el);
-  }
+  if (!el) { el = document.createElement('link'); el.setAttribute('rel', rel); document.head.appendChild(el); }
   el.setAttribute('href', href);
 }
-
 function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Display chapter number without leading zeros: "001" → "1", "129.5" → "129.5"
+function displayNum(num) {
+  const n = parseFloat(num);
+  return Number.isInteger(n) ? String(n) : String(num).replace(/^0+/, '');
 }
