@@ -19,8 +19,10 @@ function getSavedScroll(num) {
 
 (async function () {
   let manifest;
+  const isPretty = window.location.pathname.match(/\/chapter\/\d+(?:\.\d+)?\/?$/);
+  const basePath = isPretty ? '../../' : './';
   try {
-    const res = await fetch('chapters.json', { cache: 'no-cache' });
+    const res = await fetch(basePath + 'chapters.json', { cache: 'no-cache' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     manifest = await res.json();
   } catch (err) {
@@ -58,12 +60,28 @@ function getSavedScroll(num) {
   setupReadingMode();
   setupScrollTracking(chapter);
   attachPageNav();
+  setupBackToTop();
 
   window.addEventListener('load', () => {
     const saved = getSavedScroll(chapter.num);
     if (saved > 0) requestAnimationFrame(() => window.scrollTo(0, saved));
   });
 })();
+
+function setupBackToTop() {
+  const btn = document.getElementById('back-to-top');
+  if (!btn) return;
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > window.innerHeight) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
+  }, { passive: true });
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
 
 // ─────────────────────────────────────────────────────────────────
 function renderChapter(chapter, allChapters, series) {
@@ -80,7 +98,7 @@ function renderChapter(chapter, allChapters, series) {
   setMeta('og:title', title, 'property');
   setMeta('og:description', desc, 'property');
   if (chapter.images?.[0]) setMeta('og:image', chapter.images[0], 'property');
-  setLinkRel('canonical', `/reader.html?chapter=${chapter.num}`);
+  setLinkRel('canonical', `/chapter/${chapter.num}/`);
 
   // JSON-LD
   $('#jsonld').textContent = JSON.stringify({
@@ -138,7 +156,7 @@ function renderChapter(chapter, allChapters, series) {
     return `<li class="${isCurrent ? 'pv-current' : ''}">` +
       (isCurrent
         ? `<span>Chapter ${cdn}</span>`
-        : `<a href="/reader.html?chapter=${c.num}">Chapter ${cdn}</a>`) +
+        : `<a href="/chapter/${c.num}/">Chapter ${cdn}</a>`) +
       `</li>`;
   }).join('');
   ['pv-chapter-list-top', 'pv-chapter-list-bot'].forEach(id => {
@@ -146,9 +164,12 @@ function renderChapter(chapter, allChapters, series) {
     if (el) el.innerHTML = listHtml;
   });
 
+  const isPretty = window.location.pathname.match(/\/chapter\/\d+(?:\.\d+)?\/?$/);
+  const basePath = isPretty ? '../../' : './';
+
   // Reader images
   $('#reader-pages').innerHTML = chapter.images.map((src, i) =>
-    `<img src="${src}" alt="${escapeHtml(series.title)} Chapter ${dn} Page ${i + 1}" loading="lazy" />`
+    `<img src="${basePath}${src}" alt="${escapeHtml(series.title)} Chapter ${dn} Page ${i + 1}" loading="lazy" />`
   ).join('');
 
   // SEO block
@@ -161,7 +182,7 @@ function renderChapter(chapter, allChapters, series) {
   // Latest widget
   const latest = allChapters.filter(c => c.num !== chapter.num).slice(-12).reverse();
   $('#latest-list').innerHTML = latest.map(c =>
-    `<li><a href="/reader.html?chapter=${c.num}">Ch.${displayNum(c.num)}</a></li>`
+    `<li><a href="/chapter/${c.num}/">Ch.${displayNum(c.num)}</a></li>`
   ).join('');
 }
 
@@ -175,7 +196,7 @@ function setNavPill(id, target) {
     el.removeAttribute('href');
     el.classList.add('pv-pill-disabled');
   } else {
-    el.href = `/reader.html?chapter=${target.num}`;
+    el.href = `/chapter/${target.num}/`;
     el.classList.remove('pv-pill-disabled');
   }
 }
@@ -237,10 +258,10 @@ function setupKeyboardNav(currentChapter, allChapters) {
     if (e.key === 'Escape') { closeAllDropdowns(); return; }
     if (e.key === 'ArrowLeft' && idx > 0) {
       e.preventDefault();
-      window.location.href = `/reader.html?chapter=${allChapters[idx - 1].num}`;
+      window.location.href = `/chapter/${allChapters[idx - 1].num}/`;
     } else if (e.key === 'ArrowRight' && idx < allChapters.length - 1) {
       e.preventDefault();
-      window.location.href = `/reader.html?chapter=${allChapters[idx + 1].num}`;
+      window.location.href = `/chapter/${allChapters[idx + 1].num}/`;
     }
   });
 }
@@ -265,10 +286,10 @@ function setupProgressBar() {
 function updateProgressText() {
   let text = document.getElementById('progress-text');
   if (!text) {
-    text = document.createElement('div');
+    text = document.createElement('li');
     text.id = 'progress-text';
     text.className = 'reader-progress-text';
-    document.querySelector('nav.nav')?.appendChild(text);
+    document.querySelector('ul.nav-links')?.appendChild(text);
   }
   const images = document.querySelectorAll('#reader-pages img');
   if (!images.length) return;
@@ -285,6 +306,7 @@ function setupReadingMode() {
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key?.toLowerCase() === 'r') {
+      if (e.ctrlKey || e.metaKey) return;
       e.preventDefault();
       document.body.classList.toggle('reading-mode');
     }

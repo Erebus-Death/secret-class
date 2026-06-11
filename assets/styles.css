@@ -710,13 +710,13 @@ footer a { color: var(--accent); }
 }
 
 .reader-progress-text {
-  font-size: 0.7rem;
-  color: var(--muted);
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  padding: 0 0.8rem;
+  font-size: 0.82rem;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.08em;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
 }
 
 /* ─── READING MODE ─────────────────────────────────────────── */
@@ -866,9 +866,16 @@ body.reading-mode #reader-pages img {
 /* ── Controls row: ‹Prev  [Chapter ▾]  Next› ───────────────── */
 .pv-controls {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 0.6rem;
   margin-bottom: 0.25rem;
+}
+
+.pv-prev-next {
+  display: flex;
+  gap: 0.6rem;
+  flex-shrink: 0;
 }
 
 .pv-controls-bottom {
@@ -923,8 +930,8 @@ body.reading-mode #reader-pages img {
 /* ── Dropdown wrapper ───────────────────────────────────────── */
 .pv-dropdown-wrap {
   position: relative;
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 0 0 auto;
+  min-width: 140px;
 }
 
 /* Trigger button */
@@ -1014,7 +1021,8 @@ body.reading-mode .pv-controls-bottom,
 body.reading-mode nav.nav,
 body.reading-mode footer,
 body.reading-mode .chapter-seo,
-body.reading-mode .latest-widget { display: none !important; }
+body.reading-mode .latest-widget,
+body.reading-mode .back-to-top { display: none !important; }
 
 /* ── Mobile ─────────────────────────────────────────────────── */
 @media (max-width: 640px) {
@@ -1023,4 +1031,49 @@ body.reading-mode .latest-widget { display: none !important; }
   .pv-description { text-align: left; }
   .pv-pill { padding: 0.45rem 0.8rem; font-size: 0.78rem; }
   .pv-dropdown-btn { padding: 0.45rem 0.9rem; font-size: 0.78rem; }
+}
+
+/* ─── BACK TO TOP BUTTON ─────────────────────────────────────── */
+.back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 45px;
+  height: 45px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 50%;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.back-to-top:hover {
+  background: var(--surface);
+  border-color: var(--accent);
+  color: var(--accent2);
+  transform: translateY(-3px);
+}
+
+@media (max-width: 640px) {
+  .back-to-top {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 40px;
+    height: 40px;
+  }
 }

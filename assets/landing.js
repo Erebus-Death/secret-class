@@ -37,13 +37,13 @@
 
   // ── Render chapter list (newest first) ─────────────────────
   const newest = chapters[chapters.length - 1];
-  if (newest && btnLatest) btnLatest.href = `/reader.html?chapter=${newest.num}`;
+  if (newest && btnLatest) btnLatest.href = `/chapter/${newest.num}/`;
 
   if (grid) {
     const newestNum = newest ? newest.num : null;
     const items = chapters.slice().reverse().map((c) => {
       const isNew = c.num === newestNum;
-      return `<a class="chapter-item" href="/reader.html?chapter=${c.num}" ` +
+      return `<a class="chapter-item" href="/chapter/${c.num}/" ` +
              `data-num="${c.num}" ` +
              `title="Read ${escapeHtml(series.title)} Chapter ${c.num} (${c.pages} pages)">` +
              `<span class="chapter-num">Ch.${c.num}</span>` +
@@ -73,17 +73,34 @@
       // Make sure the chapter actually exists
       const exists = chapters.some((c) => c.num === last);
       if (exists) {
-        btnContinue.href = `/reader.html?chapter=${last}`;
+        btnContinue.href = `/chapter/${last}/`;
         btnContinue.style.display = '';
         if (lastReadWrap && lastReadLink) {
           lastReadLink.textContent = `Chapter ${last}`;
-          lastReadLink.href = `/reader.html?chapter=${last}`;
+          lastReadLink.href = `/chapter/${last}/`;
           lastReadWrap.style.display = '';
         }
       }
     }
   } catch (e) { /* private mode */ }
+
+  setupBackToTop();
 })();
+
+function setupBackToTop() {
+  const btn = document.getElementById('back-to-top');
+  if (!btn) return;
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > window.innerHeight) {
+      btn.classList.add('visible');
+    } else {
+      btn.classList.remove('visible');
+    }
+  }, { passive: true });
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
 
 function escapeHtml(s) {
   return String(s)

@@ -228,6 +228,19 @@ def main():
     print("   Writing sitemap.xml…")
     (site_dir / "sitemap.xml").write_text(render_sitemap(chapters, base_url))
 
+    # 3.5. Generate per-chapter static HTML
+    print("   Generating per-chapter static HTML (for static servers)…")
+    reader_html = (site_dir / "reader.html").read_text()
+    reader_html = reader_html.replace('href="assets/', 'href="../../assets/')
+    reader_html = reader_html.replace('src="assets/', 'src="../../assets/')
+    reader_html = reader_html.replace('href="../"', 'href="../../"')
+    reader_html = reader_html.replace('href="../#', 'href="../../#')
+    
+    for c in chapters:
+        ch_dir = site_dir / "chapter" / c["num_str"]
+        ch_dir.mkdir(parents=True, exist_ok=True)
+        (ch_dir / "index.html").write_text(reader_html)
+
     # 4. robots.txt
     print("   Writing robots.txt…")
     (site_dir / "robots.txt").write_text(render_robots(base_url))
