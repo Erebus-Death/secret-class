@@ -1,6 +1,9 @@
 # Image cache (2GB of hardlinked files – never commit)
 chapters/
 
+# Generated per-chapter HTML (Cloudflare handles routing via _redirects)
+chapter/
+
 # Python cache
 __pycache__/
 *.pyc

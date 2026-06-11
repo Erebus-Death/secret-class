@@ -1,8 +1,5 @@
 # Cloudflare Pages redirects
-# Format: <from>  <to>  <status>
-#
-# Pretty-URL rewrite for chapter pages:
-#   /chapter/001/  →  /reader.html?chapter=001
-
-/chapter/:num/   /reader.html?chapter=:num   200
-/chapter/:num    /reader.html?chapter=:num   200
+# Pretty-URL rewrite: /chapter/001/ → serves reader.html (200 = rewrite, not redirect)
+# The :num wildcard captures decimals like 129.5 too
+/chapter/:num/   /reader.html   200
+/chapter/:num    /reader.html   200
