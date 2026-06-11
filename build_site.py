@@ -143,7 +143,7 @@ def build_chapters_json(chapters) -> dict:
             "pages":   len(c["pages"]),
             "url":     chapter_url(c["num_str"]),
             "folder":  c["folder"],
-            "images":  [f"chapters/{c['folder']}/{p}" for p in c["pages"]],
+            "images":  [f"{c['folder']}/{p}" for p in c["pages"]],
         })
     return {
         "series": {
