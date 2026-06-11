@@ -2,6 +2,7 @@
    Secret Class — reader.js  (PanelVerse-accurate layout)
    ================================================================= */
 
+const CDN_BASE_URL = 'https://images.readsecretclassonline.com';
 const $ = (sel) => document.querySelector(sel);
 
 function getChapterFromURL() {
@@ -97,7 +98,7 @@ function renderChapter(chapter, allChapters, series) {
   setMeta('description', desc);
   setMeta('og:title', title, 'property');
   setMeta('og:description', desc, 'property');
-  if (chapter.images?.[0]) setMeta('og:image', chapter.images[0], 'property');
+  if (chapter.images?.[0]) setMeta('og:image', CDN_BASE_URL + '/' + chapter.images[0], 'property');
   setLinkRel('canonical', `/chapter/${chapter.num}/`);
 
   // JSON-LD
@@ -106,7 +107,7 @@ function renderChapter(chapter, allChapters, series) {
     "issueNumber": chapter.num,
     "name": `${series.title} Chapter ${chapter.num}`,
     "isPartOf": { "@type": "ComicSeries", "name": series.title, "url": "/" },
-    "image": chapter.images?.slice(0, 3),
+    "image": chapter.images?.slice(0, 3).map(img => CDN_BASE_URL + '/' + img),
     "author": series.author, "artist": series.artist
   });
 
@@ -169,7 +170,7 @@ function renderChapter(chapter, allChapters, series) {
 
   // Reader images
   $('#reader-pages').innerHTML = chapter.images.map((src, i) =>
-    `<img src="${basePath}${src}" alt="${escapeHtml(series.title)} Chapter ${dn} Page ${i + 1}" loading="lazy" />`
+    `<img src="${CDN_BASE_URL}/${src}" alt="${escapeHtml(series.title)} Chapter ${dn} Page ${i + 1}" loading="lazy" />`
   ).join('');
 
   // Share widget
