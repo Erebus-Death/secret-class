@@ -2,7 +2,7 @@
    Secret Class — reader.js  (PanelVerse-accurate layout)
    ================================================================= */
 
-const CDN_BASE_URL = 'https://images.readsecretclassonline.com';
+const CDN_BASE_URL = 'https://cdn.readsecretclassonline.com';
 const $ = (sel) => document.querySelector(sel);
 
 function getChapterFromURL() {
