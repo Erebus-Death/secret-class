@@ -21,7 +21,7 @@ function getSavedScroll(num) {
 (async function () {
   let manifest;
   const isPretty = window.location.pathname.match(/\/chapter\/\d+(?:\.\d+)?\/?$/);
-  const basePath = isPretty ? '../../' : './';
+  const basePath = isPretty ? '../' : './';
   try {
     const res = await fetch(basePath + 'chapters.json', { cache: 'no-cache' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -166,7 +166,7 @@ function renderChapter(chapter, allChapters, series) {
   });
 
   const isPretty = window.location.pathname.match(/\/chapter\/\d+(?:\.\d+)?\/?$/);
-  const basePath = isPretty ? '../../' : './';
+  const basePath = isPretty ? '../' : './';
 
   // Reader images
   $('#reader-pages').innerHTML = chapter.images.map((src, i) =>
