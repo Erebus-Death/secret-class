@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://secretclass.example.com/sitemap.xml
+Sitemap: https://readsecretclassonline.com/sitemap.xml

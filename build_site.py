@@ -33,7 +33,7 @@ from pathlib import Path
 # ----------------------------------------------------------------------
 DEFAULT_CHAPTERS_DIR = Path.home() / "Desktop/secret-class-chapters"
 DEFAULT_SITE_DIR     = Path.home() / "Desktop/secret-class-site"
-DEFAULT_BASE_URL     = "https://secretclass.example.com"  # change to your real domain
+DEFAULT_BASE_URL     = "https://readsecretclassonline.com"
 
 SERIES_TITLE    = "Secret Class"
 SERIES_AUTHOR   = "Wang Kang-cheol"
