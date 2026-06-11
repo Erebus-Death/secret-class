@@ -19,7 +19,7 @@
 
   let manifest = null;
   try {
-    const r = await fetch('chapters.json', { cache: 'no-cache' });
+    const r = await fetch('/chapters.json', { cache: 'no-cache' });
     manifest = await r.json();
   } catch (e) {
     if (grid) {
