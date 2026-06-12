@@ -1,2 +1,3 @@
-/chapter/:num/ /reader.html?chapter=:num 302
-/chapter/:num /reader.html?chapter=:num 302
+/chapter/:num/ /reader.html?chapter=:num 200
+/chapter/:num  /reader.html?chapter=:num 200
+/*             /404.html                 404
