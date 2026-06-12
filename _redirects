@@ -1,4 +1,1 @@
-# Cloudflare Pages redirects
-# Pretty-URL rewrite: /chapter/001/ → serves reader.html (200 = rewrite, not redirect)
-# The :num wildcard captures decimals like 129.5 too
-/chapter/* /reader.html?chapter=:splat 200
+/chapter/:num /reader.html?chapter=:num 302
