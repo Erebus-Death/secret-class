@@ -21,9 +21,12 @@
 <meta name="twitter:title" content="Secret Class – Read Manhwa Online Free" />
 <meta name="twitter:description" content="Read Secret Class manhwa online for free. Fast updates, all chapters." />
 
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Serif+KR:wght@400;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet">
+</noscript>
 <link rel="stylesheet" href="/assets/styles.css" />
 
 <!-- Series-level structured data — reader.js enhances with chapter list at runtime -->
@@ -56,7 +59,7 @@
   <div class="hero-inner">
 
     <div class="hero-cover">
-  <img src="assets/cover.webp" alt="Secret Class cover art" class="hero-cover-img">
+  <img src="assets/cover.webp" width="736" height="1308" alt="Secret Class cover art" class="hero-cover-img" loading="eager" fetchpriority="high">
 </div>
 
     <div class="hero-content">
@@ -173,6 +176,6 @@
 </button>
 
 <!-- Landing-page enhancements: fetch chapters.json, render list, wire CTAs -->
-<script src="/assets/landing.js"></script>
+<script src="/assets/landing.js" async></script>
 </body>
 </html>
