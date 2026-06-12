@@ -1,24 +1,9 @@
 #!/usr/bin/env python3
 """
-Build script for the Secret Class reader site (v2 — dynamic reader).
-
-Reads chapter folders from:
-    ~/Desktop/secret-class-chapters/ch###/001.jpg, 002.jpg, ...
-
-And produces, under the site root (~/Desktop/secret-class-site/):
-    chapters.json   ← single source of truth: every chapter + its page list
-    sitemap.xml     ← pretty URLs: /chapter/001/, /chapter/002/, ...
-    chapters/       ← hard-linked image mirror (so the site is self-contained)
-
-The site uses ONE reader template (reader.html) that reads chapters.json
-and renders any chapter dynamically. No more generating 309 HTML files.
-
-Usage
------
-    python3 build_site.py                       # builds with the defaults
-    python3 build_site.py --site-dir <path>     # override site output dir
-    python3 build_site.py --chapters-dir <path> # override scraped-chapters dir
-    python3 build_site.py --base-url https://secretclass.example.com
+Build script for Secret Class reader site – SMART version.
+- Preserves existing chapters in chapters.json (never removes).
+- Only adds new chapters found in local folder.
+- Generates sitemap.xml and robots.txt.
 """
 
 import argparse
@@ -28,9 +13,6 @@ import re
 import sys
 from pathlib import Path
 
-# ----------------------------------------------------------------------
-# Config
-# ----------------------------------------------------------------------
 DEFAULT_CHAPTERS_DIR = Path.home() / "Desktop/secret-class-chapters"
 DEFAULT_SITE_DIR     = Path.home() / "Desktop/secret-class-site"
 DEFAULT_BASE_URL     = "https://readsecretclassonline.com"
@@ -51,17 +33,12 @@ CHAPTER_RE = re.compile(r"^ch(\d+(?:\.\d+)?)$")
 IMG_RE     = re.compile(r"^(\d+)\.(jpg|jpeg|png|webp)$", re.IGNORECASE)
 
 
-# ----------------------------------------------------------------------
-# Helpers
-# ----------------------------------------------------------------------
 def natural_key(num: str):
-    """Sort key so 1, 2, 10 sort correctly; '12.5' sorts between 12 and 13."""
-    return tuple(int(p) if "." not in p else float(p)
-                 for p in num.split("."))
+    return tuple(int(p) if "." not in p else float(p) for p in num.split("."))
 
 
 def discover_chapters(chapters_dir: Path):
-    """Return list of dicts: {num, num_str, folder, pages} sorted ascending."""
+    """Return list of dicts for chapters found locally."""
     out = []
     if not chapters_dir.exists():
         return out
@@ -82,91 +59,55 @@ def discover_chapters(chapters_dir: Path):
         except ValueError:
             num = num_str
         out.append({
-            "num":     num,
+            "num": num,
             "num_str": num_str,
-            "folder":  folder.name,
-            "pages":   pages,
+            "folder": folder.name,
+            "pages": pages,
         })
     out.sort(key=lambda c: natural_key(str(c["num"])))
     return out
 
 
 def chapter_url(num_str: str) -> str:
-    """Pretty URL: /chapter/001/"""
     return f"/chapter/{num_str}/"
 
 
-def chapter_api_path(num_str: str) -> str:
-    """Internal reference path: chapters/ch001/001.jpg"""
-    folder = f"ch{int(float(num_str)):03d}" if "." in num_str else f"ch{int(num_str):03d}"
-    return folder
-
-
-# ----------------------------------------------------------------------
-# Mirror images into the site
-# ----------------------------------------------------------------------
-def mirror_chapters(chapters, site_dir: Path):
-    """Hard-link images from the scrape dir into <site>/chapters/."""
-    target_root = site_dir / "chapters"
-    for c in chapters:
-        src_dir = None
-        # Resolve source folder from chapters_dir (parent of build script's context)
-        for candidate in [Path.home() / "Desktop/secret-class-chapters" / c["folder"]]:
-            if candidate.exists():
-                src_dir = candidate
-                break
-        if src_dir is None:
-            continue
-
-        dst_dir = target_root / c["folder"]
-        dst_dir.mkdir(parents=True, exist_ok=True)
-        for page_name in c["pages"]:
-            src = src_dir / page_name
-            dst = dst_dir / page_name
-            if not dst.exists() and src.exists():
-                try:
-                    dst.hardlink_to(src)
-                except (OSError, NotImplementedError):
-                    dst.write_bytes(src.read_bytes())
-
-
-# ----------------------------------------------------------------------
-# chapters.json — the single source of truth
-# ----------------------------------------------------------------------
-def build_chapters_json(chapters) -> dict:
-    """Return the full manifest that the reader will fetch."""
-    items = []
-    for c in chapters:
-        items.append({
-            "num":     c["num_str"],
-            "title":   f"Chapter {c['num_str']}",
-            "pages":   len(c["pages"]),
-            "url":     chapter_url(c["num_str"]),
-            "folder":  c["folder"],
-            "images":  [f"{c['folder']}/{p}" for p in c["pages"]],
-        })
+def build_chapters_json(existing_chapters, new_chapters):
+    """Merge existing chapters (from old JSON) with newly discovered ones."""
+    # Convert existing to dict keyed by num_str
+    existing_dict = {c["num"]: c for c in existing_chapters}
+    for new in new_chapters:
+        num_str = new["num_str"]
+        if num_str not in existing_dict:
+            existing_dict[num_str] = {
+                "num": num_str,
+                "title": f"Chapter {num_str}",
+                "pages": len(new["pages"]),
+                "url": chapter_url(num_str),
+                "folder": new["folder"],
+                "images": [f"{new['folder']}/{p}" for p in new["pages"]],
+            }
+    # Convert back to list and sort numerically
+    merged = list(existing_dict.values())
+    merged.sort(key=lambda c: float(c["num"]) if c["num"].replace('.','').isdigit() else c["num"])
     return {
         "series": {
-            "title":       SERIES_TITLE,
-            "author":      SERIES_AUTHOR,
-            "artist":      SERIES_ARTIST,
-            "status":      SERIES_STATUS,
-            "synopsis":    SERIES_SINOPSYS,
-            "genres":      SERIES_GENRES,
-            "totalChapters": len(items),
+            "title": SERIES_TITLE,
+            "author": SERIES_AUTHOR,
+            "artist": SERIES_ARTIST,
+            "status": SERIES_STATUS,
+            "synopsis": SERIES_SINOPSYS,
+            "genres": SERIES_GENRES,
+            "totalChapters": len(merged),
         },
         "generated": dt.datetime.now().isoformat(timespec="seconds"),
-        "chapters":  items,
+        "chapters": merged,
     }
 
 
-# ----------------------------------------------------------------------
-# Sitemap
-# ----------------------------------------------------------------------
-def render_sitemap(chapters, base_url: str) -> str:
+def render_sitemap(chapters, base_url):
     today = dt.date.today().isoformat()
-    urls = [f"{base_url}/"]
-    urls += [f"{base_url}{chapter_url(c['num_str'])}" for c in chapters]
+    urls = [f"{base_url}/"] + [f"{base_url}{c['url']}" for c in chapters]
     body = "\n".join(
         f"  <url>\n    <loc>{u}</loc>\n    <lastmod>{today}</lastmod>\n  </url>"
         for u in urls
@@ -178,65 +119,59 @@ def render_sitemap(chapters, base_url: str) -> str:
 """
 
 
-# ----------------------------------------------------------------------
-# robots.txt
-# ----------------------------------------------------------------------
-def render_robots(base_url: str) -> str:
+def render_robots(base_url):
     return f"""User-agent: *
 Allow: /
 Sitemap: {base_url}/sitemap.xml
 """
 
 
-# ----------------------------------------------------------------------
-# Main
-# ----------------------------------------------------------------------
 def main():
-    ap = argparse.ArgumentParser(description="Build the Secret Class reader site (v2).")
+    ap = argparse.ArgumentParser(description="Smart build for Secret Class reader.")
     ap.add_argument("--chapters-dir", type=Path, default=DEFAULT_CHAPTERS_DIR)
-    ap.add_argument("--site-dir",     type=Path, default=DEFAULT_SITE_DIR)
-    ap.add_argument("--base-url",     type=str,  default=DEFAULT_BASE_URL)
+    ap.add_argument("--site-dir", type=Path, default=DEFAULT_SITE_DIR)
+    ap.add_argument("--base-url", type=str, default=DEFAULT_BASE_URL)
     args = ap.parse_args()
 
     chapters_dir = args.chapters_dir.expanduser()
-    site_dir     = args.site_dir.expanduser()
-    base_url     = args.base_url.rstrip("/")
+    site_dir = args.site_dir.expanduser()
+    base_url = args.base_url.rstrip("/")
 
     print(f"   Chapters dir : {chapters_dir}")
     print(f"   Site dir     : {site_dir}")
     print(f"   Base URL     : {base_url}\n")
 
-    chapters = discover_chapters(chapters_dir)
-    if not chapters:
-        print(f"   ⚠️  No chapters found in {chapters_dir}")
+    # Load existing chapters.json if present
+    existing_json_path = site_dir / "chapters.json"
+    existing_chapters = []
+    if existing_json_path.exists():
+        try:
+            with open(existing_json_path, "r") as f:
+                data = json.load(f)
+                existing_chapters = data.get("chapters", [])
+                print(f"   Loaded {len(existing_chapters)} existing chapters from chapters.json")
+        except Exception as e:
+            print(f"   Warning: could not read existing chapters.json – {e}")
+
+    # Discover new chapters from local folder
+    new_chapters = discover_chapters(chapters_dir)
+    print(f"   Found {len(new_chapters)} chapters in local folder")
+
+    if not new_chapters and not existing_chapters:
+        print("   ⚠️  No chapters found anywhere – aborting.")
         return 1
-    print(f"   Found {len(chapters)} chapter(s).")
 
+    # Merge and build final JSON
+    final_json = build_chapters_json(existing_chapters, new_chapters)
+    print(f"   Total chapters in output: {final_json['series']['totalChapters']}")
+
+    # Write files
     site_dir.mkdir(parents=True, exist_ok=True)
-
-    # 1. Mirror chapter images into <site>/chapters/
-    print("   Mirroring chapter images into site…")
-    mirror_chapters(chapters, site_dir)
-
-    # 2. chapters.json
-    print("   Writing chapters.json…")
-    (site_dir / "chapters.json").write_text(
-        json.dumps(build_chapters_json(chapters), ensure_ascii=False, indent=2)
-    )
-
-    # 3. sitemap.xml
-    print("   Writing sitemap.xml…")
-    (site_dir / "sitemap.xml").write_text(render_sitemap(chapters, base_url))
-
-    # 3.5. Generate per-chapter static HTML
-   
-
-    # 4. robots.txt
-    print("   Writing robots.txt…")
+    (site_dir / "chapters.json").write_text(json.dumps(final_json, indent=2))
+    (site_dir / "sitemap.xml").write_text(render_sitemap(final_json["chapters"], base_url))
     (site_dir / "robots.txt").write_text(render_robots(base_url))
 
-    print(f"\n   ✅ Build complete. {len(chapters)} chapters available.")
-    print(f"      Open index.html directly, or run:  python3 serve.py")
+    print(f"\n   ✅ Build complete. {final_json['series']['totalChapters']} chapters.")
     return 0
 
 

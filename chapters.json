@@ -4,7 +4,7 @@
     "author": "Wang Kang-cheol",
     "artist": "Minachan",
     "status": "Ongoing",
-    "synopsis": "After losing both parents at a young age, Daeho is taken in by his uncle's family. Growing up sheltered from the realities of adult life, he begins receiving an unusual education from the women around him — lessons that change everything.",
+    "synopsis": "After losing both parents at a young age, Daeho is taken in by his uncle's family. Growing up sheltered from the realities of adult life, he begins receiving an unusual education from the women around him \u2014 lessons that change everything.",
     "genres": [
       "Romance",
       "Drama",
@@ -12,9 +12,9 @@
       "School Life",
       "Slice of Life"
     ],
-    "totalChapters": 309
+    "totalChapters": 311
   },
-  "generated": "2026-06-12T08:59:24",
+  "generated": "2026-06-12T12:53:52",
   "chapters": [
     {
       "num": "001",
@@ -7440,6 +7440,61 @@
         "ch307/008.webp",
         "ch307/009.webp",
         "ch307/010.webp"
+      ]
+    },
+    {
+      "num": "308",
+      "title": "Chapter 308",
+      "pages": 21,
+      "url": "/chapter/308/",
+      "folder": "ch308",
+      "images": [
+        "ch308/001.jpg",
+        "ch308/002.jpg",
+        "ch308/003.jpg",
+        "ch308/004.jpg",
+        "ch308/005.jpg",
+        "ch308/006.jpg",
+        "ch308/007.jpg",
+        "ch308/008.jpg",
+        "ch308/009.jpg",
+        "ch308/010.jpg",
+        "ch308/011.jpg",
+        "ch308/012.jpg",
+        "ch308/013.jpg",
+        "ch308/014.jpg",
+        "ch308/015.jpg",
+        "ch308/016.jpg",
+        "ch308/017.jpg",
+        "ch308/018.jpg",
+        "ch308/019.jpg",
+        "ch308/020.jpg",
+        "ch308/021.jpg"
+      ]
+    },
+    {
+      "num": "309",
+      "title": "Chapter 309",
+      "pages": 16,
+      "url": "/chapter/309/",
+      "folder": "ch309",
+      "images": [
+        "ch309/001.jpg",
+        "ch309/002.jpg",
+        "ch309/003.jpg",
+        "ch309/004.jpg",
+        "ch309/005.jpg",
+        "ch309/006.jpg",
+        "ch309/007.jpg",
+        "ch309/008.jpg",
+        "ch309/009.jpg",
+        "ch309/010.jpg",
+        "ch309/011.jpg",
+        "ch309/012.jpg",
+        "ch309/013.jpg",
+        "ch309/014.jpg",
+        "ch309/015.jpg",
+        "ch309/016.jpg"
       ]
     }
   ]
