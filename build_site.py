@@ -85,7 +85,7 @@ def build_chapters_json(existing_chapters, new_chapters):
                 "pages": len(new["pages"]),
                 "url": chapter_url(num_str),
                 "folder": new["folder"],
-                "images": [f"{new['folder']}/{p}" for p in new["pages"]],
+                "images": [f"chapters/{new['folder']}/{p}" for p in new["pages"]],
             }
     # Convert back to list and sort numerically
     merged = list(existing_dict.values())
