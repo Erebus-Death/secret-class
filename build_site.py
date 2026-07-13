@@ -9,6 +9,7 @@ Build script for Secret Class reader site – SMART version.
 import argparse
 import datetime as dt
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -105,6 +106,35 @@ def build_chapters_json(existing_chapters, new_chapters):
     }
 
 
+def sync_images(chapters_dir: Path, site_dir: Path, chapters):
+    """Hardlink chapter images from source to site dir (zero extra disk)."""
+    site_chapters = site_dir / "chapters"
+    linked = 0
+    site_chapters.mkdir(parents=True, exist_ok=True)
+    for ch in chapters:
+        folder = ch.get("folder", f"ch{ch['num']}")
+        src = chapters_dir / folder
+        dst = site_chapters / folder
+        if not src.exists():
+            continue
+        dst.mkdir(parents=True, exist_ok=True)
+        for f in src.iterdir():
+            if not f.is_file():
+                continue
+            target = dst / f.name
+            if target.exists():
+                continue
+            try:
+                os.link(str(f), str(target))
+                linked += 1
+            except OSError:
+                pass
+    if linked:
+        print(f"   Hardlinked {linked} new image(s) into site/chapters/")
+    else:
+        print("   No new images to link.")
+
+
 def render_sitemap(chapters, base_url):
     today = dt.date.today().isoformat()
     urls = [f"{base_url}/"] + [f"{base_url}{c['url']}" for c in chapters]
@@ -170,6 +200,9 @@ def main():
     (site_dir / "chapters.json").write_text(json.dumps(final_json, indent=2))
     (site_dir / "sitemap.xml").write_text(render_sitemap(final_json["chapters"], base_url))
     (site_dir / "robots.txt").write_text(render_robots(base_url))
+
+    # Sync images from source
+    sync_images(chapters_dir, site_dir, final_json["chapters"])
 
     print(f"\n   ✅ Build complete. {final_json['series']['totalChapters']} chapters.")
     return 0

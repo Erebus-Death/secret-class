@@ -2,7 +2,7 @@
    Secret Class — reader.js  (PanelVerse-accurate layout)
    ================================================================= */
 
-const CDN_BASE_URL = 'https://cdn.readsecretclassonline.com';
+const CDN_BASE_URL = '';
 const $ = (sel) => document.querySelector(sel);
 
 function getChapterFromURL() {
@@ -96,17 +96,26 @@ function renderChapter(chapter, allChapters, series) {
   setMeta('description', desc);
   setMeta('og:title', title, 'property');
   setMeta('og:description', desc, 'property');
-  if (chapter.images?.[0]) setMeta('og:image', CDN_BASE_URL + '/' + chapter.images[0], 'property');
+  if (chapter.images?.[0]) setMeta('og:image', window.location.origin + '/' + chapter.images[0], 'property');
   setLinkRel('canonical', `/chapter/${chapter.num}/`);
 
   // JSON-LD
+  const origin = window.location.origin;
   $('#jsonld').textContent = JSON.stringify({
     "@context": "https://schema.org", "@type": "ComicIssue",
     "issueNumber": chapter.num,
     "name": `${series.title} Chapter ${chapter.num}`,
-    "isPartOf": { "@type": "ComicSeries", "name": series.title, "url": "/" },
-    "image": chapter.images?.slice(0, 3).map(img => CDN_BASE_URL + '/' + img),
+    "isPartOf": { "@type": "ComicSeries", "name": series.title, "url": origin + "/" },
+    "image": chapter.images?.slice(0, 3).map(img => origin + '/' + img),
     "author": series.author, "artist": series.artist
+  });
+  $('#jsonld-bc').textContent = JSON.stringify({
+    "@context": "https://schema.org", "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": origin + "/" },
+      { "@type": "ListItem", "position": 2, "name": series.title, "item": origin + "/" },
+      { "@type": "ListItem", "position": 3, "name": `Chapter ${chapter.num}`, "item": origin + `/chapter/${chapter.num}/` }
+    ]
   });
 
   // H1
