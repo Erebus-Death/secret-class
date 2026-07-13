@@ -2,7 +2,8 @@
    Secret Class — reader.js  (PanelVerse-accurate layout)
    ================================================================= */
 
-const CDN_BASE_URL = '';
+const CDN_BASE_URL = 'https://cdn.readsecretclassonline.com';
+const imgUrl = (path) => CDN_BASE_URL + '/' + path.replace('chapters/', '');
 const $ = (sel) => document.querySelector(sel);
 
 function getChapterFromURL() {
@@ -96,7 +97,7 @@ function renderChapter(chapter, allChapters, series) {
   setMeta('description', desc);
   setMeta('og:title', title, 'property');
   setMeta('og:description', desc, 'property');
-  if (chapter.images?.[0]) setMeta('og:image', window.location.origin + '/' + chapter.images[0], 'property');
+  if (chapter.images?.[0]) setMeta('og:image', imgUrl(chapter.images[0]), 'property');
   setLinkRel('canonical', `/chapter/${chapter.num}/`);
 
   // JSON-LD
@@ -106,7 +107,7 @@ function renderChapter(chapter, allChapters, series) {
     "issueNumber": chapter.num,
     "name": `${series.title} Chapter ${chapter.num}`,
     "isPartOf": { "@type": "ComicSeries", "name": series.title, "url": origin + "/" },
-    "image": chapter.images?.slice(0, 3).map(img => origin + '/' + img),
+    "image": chapter.images?.slice(0, 3).map(img => imgUrl(img)),
     "author": series.author, "artist": series.artist
   });
   $('#jsonld-bc').textContent = JSON.stringify({
@@ -174,7 +175,7 @@ function renderChapter(chapter, allChapters, series) {
 
   // Reader images
   $('#reader-pages').innerHTML = chapter.images.map((src, i) =>
-    `<img src="${CDN_BASE_URL}/${src}" alt="${escapeHtml(series.title)} Chapter ${dn} Page ${i + 1}" loading="lazy" />`
+    `<img src="${imgUrl(src)}" alt="${escapeHtml(series.title)} Chapter ${dn} Page ${i + 1}" loading="lazy" />`
   ).join('');
 
   // Share widget
